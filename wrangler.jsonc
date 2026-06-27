@@ -1,0 +1,73 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "openseo",
+  "main": "src/server.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "observability": {
+    "enabled": true,
+  },
+  // Uncomment when deploying to the openseo.so Cloudflare account. Self-hosters
+  // should leave this commented (or replace with their own zone) — otherwise
+  // `wrangler deploy` fails with "Could not find zone for app.openseo.so".
+  // "routes": [
+  //   { "pattern": "app.openseo.so", "custom_domain": true },
+  //   { "pattern": "www.app.openseo.so", "custom_domain": true },
+  // ],
+  "workflows": [
+    {
+      "name": "site-audit-workflow",
+      "binding": "SITE_AUDIT_WORKFLOW",
+      "class_name": "SiteAuditWorkflow",
+    },
+    {
+      "name": "rank-check-workflow",
+      "binding": "RANK_CHECK_WORKFLOW",
+      "class_name": "RankCheckWorkflow",
+    },
+  ],
+  // Durable Object backing the onboarding strategy chat (Agents SDK
+  // AIChatAgent). One instance per project; messages persist in the DO's
+  // SQLite. SQLite-backed classes must be declared in `migrations` below.
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "ONBOARDING_CHAT",
+        "class_name": "OnboardingChatAgent",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["OnboardingChatAgent"],
+    },
+  ],
+  "triggers": {
+    "crons": ["*/15 * * * *"],
+  },
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "a346a873f6464a0b8c409c7ad7701a38",
+    },
+    {
+      "binding": "OAUTH_KV",
+      "id": "74405263ee9c47b38593e4f3764ed9df",
+    },
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "openseo-db-binhnn",
+      "database_id": "875bf148-dbc0-4a7e-afc6-1af609293c32",
+      "migrations_dir": "drizzle",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "bucket_name": "openseo-r2-binhnn",
+      "binding": "R2","preview_bucket_name": "openseo-r2-binhnn",
+    },
+  ],
+}
